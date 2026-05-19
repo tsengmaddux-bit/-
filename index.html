@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>台東四日遊計帳本</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063822.png">
+    <meta name="theme-color" content="#10b981">
+</head>
+<body>
+    <div class="app-container">
+        <header class="glass-header">
+            <h1>🌴 台東四日遊</h1>
+            <p class="subtitle">6/5 - 6/8 專屬計帳本</p>
+            <div class="budget-card">
+                <div class="budget-item">
+                    <span class="budget-label">總預算 <i class="fas fa-edit" id="edit-budget-btn" style="cursor:pointer; margin-left:4px; opacity:0.8;"></i></span>
+                    <h3 id="total-budget">$0</h3>
+                </div>
+                <div class="budget-item highlight">
+                    <span class="budget-label">總花費</span>
+                    <h3 id="grand-total">$0</h3>
+                </div>
+                <div class="budget-item">
+                    <span class="budget-label">剩餘</span>
+                    <h3 id="remaining-budget">$0</h3>
+                </div>
+            </div>
+        </header>
+
+        <nav class="day-tabs">
+            <button class="tab-btn active" data-day="1">6/5<br>Day 1</button>
+            <button class="tab-btn" data-day="2">6/6<br>Day 2</button>
+            <button class="tab-btn" data-day="3">6/7<br>Day 3</button>
+            <button class="tab-btn" data-day="4">6/8<br>Day 4</button>
+        </nav>
+
+        <main class="content-area">
+            <div class="expense-list-container" id="expense-list">
+                <!-- Expenses will be injected here -->
+            </div>
+            <div class="day-total">
+                <span>單日總計:</span>
+                <span id="day-total-amount">$0</span>
+            </div>
+        </main>
+
+        <button class="fab" id="add-btn">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal-overlay" id="add-modal">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h3>新增記帳</h3>
+                <button class="close-btn" id="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="expense-form">
+                <div class="input-group">
+                    <label for="expense-category">項目分類</label>
+                    <select id="expense-category" required>
+                        <option value="" disabled selected>請選擇項目...</option>
+                        <option value="住宿">住宿</option>
+                        <option value="吃飯">吃飯</option>
+                        <option value="買樂透">買樂透</option>
+                        <option value="夾娃娃">夾娃娃</option>
+                        <option value="買伴手禮">買伴手禮</option>
+                        <option value="門票或景點相關">門票或景點相關</option>
+                        <option value="點心">點心</option>
+                        <option value="便利商店消費">便利商店消費</option>
+                        <option value="其它">其它</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="expense-desc">詳細說明 (選填)</label>
+                    <input type="text" id="expense-desc" placeholder="例如：哪間民宿、買了什麼..." autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="expense-amount">金額 (NT$)</label>
+                    <input type="number" id="expense-amount" placeholder="0" min="1" required autocomplete="off">
+                </div>
+                <button type="submit" class="submit-btn">儲存</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
