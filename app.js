@@ -1,27 +1,56 @@
+// Initialize Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyCfPqN0uTnQMu0b6SZPPYMMXil-HtqcyPo",
+  authDomain: "lizmoney-6a340.firebaseapp.com",
+  projectId: "lizmoney-6a340",
+  storageBucket: "lizmoney-6a340.firebasestorage.app",
+  messagingSenderId: "502109506998",
+  appId: "1:502109506998:web:b959dceac0128a87938517"
+};
+
+// 確保有資料庫的連線網址（如果在美國預設區以外建立，Firebase 有時會漏掉）
+firebaseConfig.databaseURL = "https://lizmoney-6a340-default-rtdb.firebaseio.com";
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const expensesRef = db.ref('expenses');
+const budgetRef = db.ref('budget');
+
 const DB_KEY = 'taitung_trip_expenses';
 
 // State
-let storedExpenses = null;
-try {
-    storedExpenses = JSON.parse(localStorage.getItem(DB_KEY));
-} catch (e) {
-    console.error("Failed to parse localStorage data", e);
-}
-
-let expenses = storedExpenses || {
-    1: [], // Day 1: 6/5
-    2: [], // Day 2: 6/6
-    3: [], // Day 3: 6/7
-    4: []  // Day 4: 6/8
+let expenses = {
+    1: [], 
+    2: [], 
+    3: [], 
+    4: []  
 };
+// 依然保留目前停留在哪一天的本地設定，讓體驗更好
+let currentDay = localStorage.getItem(DB_KEY + '_currentDay') || '1';
+let totalBudget = 0;
 
-// Ensure all days exist (backward compatibility safety)
-[1, 2, 3, 4].forEach(day => {
-    if (!expenses[day]) expenses[day] = [];
+// [即時連線] 監聽總預算的改變
+budgetRef.on('value', (snapshot) => {
+    totalBudget = snapshot.val() || 0;
+    render();
 });
 
-let currentDay = localStorage.getItem(DB_KEY + '_currentDay') || '1';
-let totalBudget = parseInt(localStorage.getItem(DB_KEY + '_budget')) || 0;
+// [即時連線] 監聽所有花費的改變
+expensesRef.on('value', (snapshot) => {
+    const data = snapshot.val() || {};
+    
+    // 清空本地暫存，準備載入雲端最新資料
+    expenses = { 1: [], 2: [], 3: [], 4: [] };
+    
+    for (const key in data) {
+        const item = data[key];
+        item.id = key; // 使用 Firebase 產生的唯一 ID
+        if (expenses[item.day]) {
+            expenses[item.day].push(item);
+        }
+    }
+    render();
+});
 
 // DOM Elements
 const grandTotalEl = document.getElementById('grand-total');
@@ -57,10 +86,6 @@ function init() {
 // Helpers
 function formatCurrency(amount) {
     return '$' + amount.toLocaleString('zh-TW');
-}
-
-function saveToLocalStorage() {
-    localStorage.setItem(DB_KEY, JSON.stringify(expenses));
 }
 
 function calculateGrandTotal() {
@@ -126,22 +151,20 @@ function render() {
 // Actions
 function addExpense(category, desc, amount) {
     const newExpense = {
-        id: Date.now().toString(),
+        day: currentDay, // 記錄是哪一天的花費
         category,
         desc,
         amount: parseFloat(amount),
         time: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
     };
-    expenses[currentDay].push(newExpense);
-    saveToLocalStorage();
-    render();
+    // 寫入 Firebase
+    expensesRef.push(newExpense);
 }
 
 window.deleteExpense = function(id) {
     if(confirm('確定要刪除這筆花費嗎？')) {
-        expenses[currentDay] = expenses[currentDay].filter(item => item.id !== id);
-        saveToLocalStorage();
-        render();
+        // 從 Firebase 刪除
+        expensesRef.child(id).remove();
     }
 }
 
@@ -167,9 +190,8 @@ function setupEventListeners() {
         if (input !== null) {
             const parsed = parseInt(input, 10);
             if (!isNaN(parsed) && parsed >= 0) {
-                totalBudget = parsed;
-                localStorage.setItem(DB_KEY + '_budget', totalBudget);
-                render();
+                // 寫入 Firebase，所有人的預算都會同步更新！
+                budgetRef.set(parsed);
             } else {
                 alert('請輸入有效的數字！');
             }
